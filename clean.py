@@ -1,10 +1,11 @@
 from nltk.tokenize import TreebankWordTokenizer, WordPunctTokenizer, sent_tokenize, TweetTokenizer
 from nltk.corpus import stopwords
 from nltk.corpus import wordnet as wn
+# from spellchecker import SpellChecker
 import pandas as pd
 import ssl
-import sys
 import re
+import sys
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -108,5 +109,4 @@ if __name__ == '__main__':
     if (head != None and specific != None):
         print('Error: Can use one type of argument only. -h for head or -s for specific')
         exit()
-
     clean_data(get_data(head, specific))
