@@ -1,4 +1,4 @@
-# tweet-comments-data-cleaner
+# Tweet Comments Data Cleaner
 
 This is my in-progress Twitter Comments Data Cleaner for a project I'm working on.
 
