@@ -71,26 +71,42 @@ def clean_data(data):
 
         if (id % jump == 0):
             print(
-                "Done cleaning - {}% ({}/{}) of items".format(id / length * 100, id, length))
-
+                f"Done cleaning - {id / length * 100}% ({id}/{length}) of items")
+    if (len(data) == 1):
+        print(f"Done cleaning - line {data[0][0]}")
     export_data_to_excel(data)
 
 
 if __name__ == '__main__':
     args = sys.argv[1:]
+    head, specific = None, None
 
-    # head argument
+    # head argument: only clean the first 'head' lines
     try:
         head_id = args.index('-h') + 1
+        try:
+            head = int(args[head_id])
+        except IndexError:
+            head = None
+            print('Error: Missing head argument. -h for head or -s for specific')
+            exit()
     except ValueError:
-        head_id = -1
+        head = None
 
-    # specific argument for testing a single line of text
+    # specific argument for cleaning a single 'specific' line of text
     try:
         specific_id = args.index('-s') + 1
+        try:
+            specific = int(args[specific_id])
+        except IndexError:
+            specific = None
+            print('Error: Missing specific argument. -h for head or -s for specific')
+            exit()
     except ValueError:
-        specific_id = -1
+        specific = None
 
-    clean_data(get_data(
-        int(args[head_id]) if head_id != -1 and len(args) > head_id else None,
-        int(args[specific_id]) if specific_id != -1 and len(args) > specific_id else None))
+    if (head != None and specific != None):
+        print('Error: Can use one type of argument only. -h for head or -s for specific')
+        exit()
+
+    clean_data(get_data(head, specific))
