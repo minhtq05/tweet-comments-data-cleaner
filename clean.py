@@ -92,5 +92,5 @@ if __name__ == '__main__':
         specific_id = -1
 
     clean_data(get_data(
-        int(args[head_id]) if head_id != -1 or len(args) > head_id else None,
-        int(args[specific_id]) if specific_id != -1 or len(args) > specific_id else None))
+        int(args[head_id]) if head_id != -1 and len(args) > head_id else None,
+        int(args[specific_id]) if specific_id != -1 and len(args) > specific_id else None))
