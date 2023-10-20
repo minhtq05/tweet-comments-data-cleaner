@@ -4,13 +4,13 @@ This is my in-progress Twitter Comments Data Cleaner for a project I'm working o
 
 # Usage
 
-To run the script, simply execute this comment
+To run the script, simply execute this command:
 
 ```bash
 python clean.py
 ```
 
-Arguments:
+Arguments available:
 
 ```bash
 -h head: only clean the first 'head' number of items in the dataset
