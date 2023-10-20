@@ -42,6 +42,7 @@ def remove_internet_contents(text):
     text = re.sub(r"http\S+", "", text)  # remove urls
     text = re.sub("www.[A-Za-z0-9-?[-`{-~]", "", text)  # remove urls
     text = re.sub("@[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove usernames
+    text = text.lower()
     return text
 
 
@@ -63,7 +64,8 @@ def clean_data(data):
 
         for sentence in sentences:
             tokens = tk.tokenize(sentence)
-            tokens = [word for word in tokens if word not in english_stops]
+            tokens = [
+                word for word in tokens if word not in english_stops]
             tokens = [word for word in tokens if len(wn.synsets(word)) > 0]
             if (len(tokens) > 0):
                 result.append(tokens)
