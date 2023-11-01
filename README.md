@@ -1,14 +1,23 @@
 # Tweet Comments Data Cleaner
 
-This is my in-progress Twitter Comments Data Cleaner for a project I'm working on.
+This is my in-progress Tweets Comments Data Processor for a project I'm working on.
 
 # Usage
 
-To run the script, simply execute this command:
+To clean the data, execute this command:
 
 ```bash
 python clean.py
 ```
+
+We're using a SVM to predict the binary state (positive / negative) of comments.
+
+To train the model with the cleaned dataset, execute this command:
+
+```bash
+python train.py
+```
+
 
 Arguments available:
 
