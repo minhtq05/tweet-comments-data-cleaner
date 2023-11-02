@@ -1,6 +1,11 @@
-# Tweet Comments Data Cleaner
+# Tweet Comments Positivity Predictor
+> **Warning**  
+>
+> This repo is a work in progress! It may contains a lot of bugs
 
-This is my in-progress Tweets Comments Data Processor for a project I'm working on.
+This is my in-progress Tweets Comments Positivity Predictor project.
+
+The repo contains raw supervised data to clean and train our model
 
 # Usage
 
@@ -10,16 +15,15 @@ To clean the data, execute this command:
 python clean.py
 ```
 
-We're using a SVM to predict the binary state (positive / negative) of comments.
+At the moment, We're using an SVM to predict the binary state (positive / negative) of comments.
 
-To train the model with the cleaned dataset, execute this command:
+To train the model with the cleaned dataset and find the accuracy of the model, execute this command:
 
 ```bash
 python train.py
 ```
 
-
-Arguments available:
+Features (arguments) for the clean program:
 
 ```bash
 -h head: only clean the first 'head' number of items in the dataset
