@@ -1,11 +1,10 @@
 from nltk.tokenize import TreebankWordTokenizer, WordPunctTokenizer, sent_tokenize, TweetTokenizer
 from nltk.corpus import stopwords
 from nltk.corpus import wordnet as wn
-# from spellchecker import SpellChecker
 import pandas as pd
 import ssl
-import re
 import sys
+import re
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -42,7 +41,6 @@ def remove_internet_contents(text):
     text = re.sub(r"http\S+", "", text)  # remove urls
     text = re.sub("www.[A-Za-z0-9-?[-`{-~]", "", text)  # remove urls
     text = re.sub("@[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove usernames
-    text = text.lower()
     return text
 
 
@@ -64,8 +62,7 @@ def clean_data(data):
 
         for sentence in sentences:
             tokens = tk.tokenize(sentence)
-            tokens = [
-                word for word in tokens if word not in english_stops]
+            tokens = [word for word in tokens if word not in english_stops]
             tokens = [word for word in tokens if len(wn.synsets(word)) > 0]
             if (len(tokens) > 0):
                 result.append(tokens)
@@ -111,4 +108,5 @@ if __name__ == '__main__':
     if (head != None and specific != None):
         print('Error: Can use one type of argument only. -h for head or -s for specific')
         exit()
+
     clean_data(get_data(head, specific))
