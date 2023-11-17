@@ -1,11 +1,15 @@
-from transformers import BertTokenizer
-# from nltk.tokenize import TweetTokenizer
+from torchtext.data.utils import get_tokenizer
 from nltk.corpus import stopwords
 from nltk.corpus import wordnet as wn
 import ssl
 import re
 import pandas as pd
 import sys
+import time
+
+
+start_time = time.time()
+
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -16,14 +20,14 @@ else:
 
 
 def export_data_to_excel(data):
-    data = pd.DataFrame(
-        data, columns=['sentence_id', 'sentence_label', 'sentence_text'])
-    data = data[data['sentence_text'] != '']
-    data_0, data_1 = data[data['sentence_label']
-                          == 0], data[data['sentence_label'] == 1]
+    df = pd.DataFrame(
+        data, columns=['id', 'label', 'text'])
+    df = df[df['text'] != '']
+    df_0, df_1 = df[df['label']
+                    == 0], df[df['label'] == 1]
 
-    data_0.to_csv('../data/cleaned_0.csv', index=False)
-    data_1.to_csv('../data/cleaned_1.csv', index=False)
+    df_0.to_csv('../data/cleaned_0.csv', index=False)
+    df_1.to_csv('../data/cleaned_1.csv', index=False)
 
 
 def get_data(start=None, stop=None, specific=None):
@@ -38,39 +42,45 @@ def get_data(start=None, stop=None, specific=None):
     return data[start:stop] if (specific == None) else [data[specific - 1]]
 
 
-def remove_internet_contents(text):
+def tokenize(text):
+    """tokenize the text"""
     text = text.lower()
     text = re.sub(r"http\S+", "", text)  # remove urls
-    text = re.sub("www.[A-Za-z0-9-?[-`{-~]", "", text)  # remove urls
     text = re.sub("@[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove usernames
     text = re.sub("#[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove hashtags
     text = re.sub("[~`!@#$%^&*()-_+=[\]{};:\"\\|,.<>/?]",
                   "", text)  # remove special characters
+    text = re.findall("[a-z0-9]+", text)
     return text
 
 
+# def remove_internet_contents(text):
+#     text = text.lower()
+#     text = re.sub(r"http\S+", "", text)  # remove urls
+#     # text = re.sub("www.[A-Za-z0-9-?[-`{-~]", "", text)  # also remove urls
+#     # text = re.sub("@[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove usernames
+#     # text = re.sub("#[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove hashtags
+#     text = re.sub()
+#     text = re.sub("[~`!@#$%^&*()-_+=[\]{};:\"\\|,.<>/?]",
+#                   "", text)  # remove special characters
+#     return text
+
+
 def clean_data(data):
+    """ clean the dataset"""
     length = len(data)
     jump = length / 10
 
-    tk = BertTokenizer.from_pretrained('bert-base-uncased')
-    # tk = TweetTokenizer()
+    # tk = BertTokenizer.from_pretrained('bert-base-uncased')
     english_stops = set(stopwords.words('english'))
 
-    for i in range(len(data)):
-        id, label, text = data[i]
+    for i, (id, label, text) in enumerate(data):
         id, label = int(id), int(label)
 
-        text = remove_internet_contents(text)
-        # sentences = sent_tokenize(text)
-        tokens = tk.tokenize(text)
+        # text = remove_internet_contents(text)
+        tokens = tokenize(text)
 
-        # for sentence in sentences:
-        # tokens = tk.tokenize(sentence)
         tokens = [word for word in tokens if word not in english_stops]
-        # tokens = [word for word in tokens if len(wn.synsets(word)) > 0]
-        # if (len(tokens) > 0):
-        # result.append(tokens)
 
         data[i] = id, label, ' '.join(tokens)
 
@@ -121,3 +131,5 @@ if __name__ == '__main__':
         exit()
 
     clean_data(get_data(start, stop, specific))
+
+    print(f"Execution time: {time.time() - start_time:.4f}(s)")
