@@ -24,16 +24,15 @@ df = read_data()
 
 # get the corpus text, only take 50 first lines to process
 
-text = list(df['text'])[:50]
+text = list(df['text'])[:1000]
 
 stop_words = stopwords.words('english')
 
 # re-implement a tokenizer, also remove stop words
 
-
 def tokenize(text):
     text = text.lower()
-    text = re.findall(r"[A-Za-z0-9]+", text)
+    text = re.findall(r"[a-z0-9]+", text)
     text = [w for w in text if w not in stop_words]
     return text
 
@@ -149,14 +148,21 @@ def train(model, X, y, n_epochs=30, learning_rate=0.01):
     loss_fn = nn.CrossEntropyLoss()
     for _ in range(n_epochs):
         n_loss = 0
-        for i in range(len(X)):
-            optimizer.zero_grad()
-            output = model.forward(torch.tensor(X[i], dtype=torch.float32))
-            loss = loss_fn(output, torch.tensor(y[i], dtype=torch.float32))
-            loss.backward()
-            optimizer.step()
-            n_loss += loss.item()
-        losses.append(n_loss / len(X))
+        # for i in range(len(X)):
+        #     optimizer.zero_grad()
+        #     output = model.forward(torch.tensor(X[i], dtype=torch.float32))
+        #     loss = loss_fn(output, torch.tensor(y[i], dtype=torch.float32))
+        #     loss.backward()
+        #     optimizer.step()
+        #     n_loss += loss.item()
+        optimizer.zero_grad()
+        output = model.forward(torch.tensor(X, dtype=torch.float32))
+        loss = loss_fn(output, torch.tensor(y, dtype=torch.float32))
+        loss.backward()
+        optimizer.step()
+        n_loss += loss.item()
+        # losses.append(n_loss / len(X))
+        losses.append(n_loss)
 
     return losses
 
