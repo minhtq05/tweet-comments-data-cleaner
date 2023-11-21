@@ -13,10 +13,8 @@ np.random.seed(42)
 torch.manual_seed(42)
 
 
-# read data from pre-cleaned datasets
-
 def read_data():
-
+    """read data from pre-cleaned datasets"""
     df = pd.read_csv('../data/cleaned_1.csv')
     # df = pd.concat([pd.read_csv('../data/cleaned_0.csv'),
     # pd.read_csv('../data/cleaned_1.csv')], ignore_index=True)
@@ -27,7 +25,7 @@ df = read_data()
 
 # get the corpus text, only take 50 first lines to process
 
-text = list(df['text'])[:100]
+text = list(df['text'])[:2000]
 
 stop_words = stopwords.words('english')
 
@@ -93,7 +91,7 @@ def generate_data(text, word_to_id, window_size=1):
                 X.append(one_hot_encode(word_to_id[tokens[i]], n_words))
                 y.append(one_hot_encode(word_to_id[tokens[j]], n_words))
 
-    return np.asarray(X), np.asarray(y)
+    return torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
 
 # X: input date
 # y: label of the inputs
@@ -105,7 +103,7 @@ X, y = generate_data(text, word_to_id, 2)
 
 print(f"Size of dataset: {X.shape}")
 
-n_embedding = 30
+n_embedding = 10
 
 # number of unique words, also the size of the word dictionary
 
@@ -117,9 +115,11 @@ print(f"Number of unique words in the corpus: {vocab_size} words")
 
 
 class NN(nn.Module):
-    def __init__(self):
+    def __init__(self, n_embedding, vocab_size):
         super().__init__()
 
+        self.n_embedding = n_embedding
+        self.vocab_size = vocab_size
         # use three layers,
 
         # the first layer can be the embedding layer, which means convert the words into
@@ -149,42 +149,39 @@ def cross_entropy(z, y):
     return - torch.sum(torch.log(z) * y)
 
 
-def train(model, X, y, n_epochs=1000, learning_rate=0.01):
+def train(model, X, y, n_epochs=100, learning_rate=0.001):
     optimizer = torch.optim.SGD(
         model.parameters(), lr=learning_rate, momentum=0.9)
     losses = []
     loss_fn = cross_entropy
-    batch_size = int(len(X) / 10)
+    batch_size = 500
+    n_batches = len(X) // batch_size + (len(X) % batch_size > 0)
     for _ in range(n_epochs):
-        n_loss = 0
-        # for inputs, label in zip(X, y):
-        #     optimizer.zero_grad()
-        #     output = model.forward(torch.tensor(inputs, dtype=torch.float32))
-        #     loss = loss_fn(output, torch.tensor(label, dtype=torch.float32))
-        #     loss.backward()
-        #     optimizer.step()
-        #     n_loss += loss.item()
-        optimizer.zero_grad()
-        output = model.forward(torch.tensor(X, dtype=torch.float32))
-        loss = loss_fn(output, torch.tensor(y, dtype=torch.float32))
-        loss.backward()
-        optimizer.step()
-        n_loss = loss.item()
-        # losses.append(n_loss / batch_size)
+        for i in range(0, len(X), batch_size):
+            n_loss = 0
+            # for inputs, label in zip(X, y):
+            #     optimizer.zero_grad()
+            #     output = model.forward(torch.tensor(inputs, dtype=torch.float32))
+            #     loss = loss_fn(output, torch.tensor(label, dtype=torch.float32))
+            #     loss.backward()
+            #     optimizer.step()
+            #     n_loss += loss.item()
+            optimizer.zero_grad()
+            output = model.forward(X[i: min(i + batch_size, len(X) - 1)])
+            loss = loss_fn(output, y[i: min(i + batch_size, len(y) - 1)])
+            loss.backward()
+            optimizer.step()
+            n_loss += loss.item()
         losses.append(n_loss)
 
     return losses
 
 
-model = NN()
-
-print(list(model.parameters()))
-
-
-print(X.shape)
-print(y.shape)
+model = NN(n_embedding, vocab_size)
 
 loss = train(model, X, y)
+
+print(f"Execution time: {time.time() - start_time}(s)")
 
 plt.plot(range(len(loss)), loss, color="skyblue")
 
@@ -218,6 +215,3 @@ def vectorize(word):
 
 
 print(vectorize("good"))
-
-
-print(f"Execution time: {time.time() - start_time}(s)")
