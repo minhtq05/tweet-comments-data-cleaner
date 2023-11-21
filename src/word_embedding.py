@@ -10,13 +10,16 @@ from nltk.corpus import stopwords
 start_time = time.time()
 
 np.random.seed(42)
+torch.manual_seed(42)
 
 
 # read data from pre-cleaned datasets
 
 def read_data():
-    df = pd.concat([pd.read_csv('../data/cleaned_0.csv'),
-                    pd.read_csv('../data/cleaned_1.csv')], ignore_index=True)
+
+    df = pd.read_csv('../data/cleaned_1.csv')
+    # df = pd.concat([pd.read_csv('../data/cleaned_0.csv'),
+    # pd.read_csv('../data/cleaned_1.csv')], ignore_index=True)
     return df
 
 
@@ -24,11 +27,12 @@ df = read_data()
 
 # get the corpus text, only take 50 first lines to process
 
-text = list(df['text'])[:1000]
+text = list(df['text'])[:100]
 
 stop_words = stopwords.words('english')
 
 # re-implement a tokenizer, also remove stop words
+
 
 def tokenize(text):
     text = text.lower()
@@ -120,38 +124,43 @@ class NN(nn.Module):
 
         # the first layer can be the embedding layer, which means convert the words into
         # a vector with the size of n_embedding ( = 10 in this case)
-        self.fc1 = nn.Linear(vocab_size, n_embedding)
+        self.fc1 = nn.Linear(vocab_size, n_embedding, bias=False)
 
         # the second layer can be the layer that converts the vector containing all the meanings
         # to a vector of size vocab_size, which is the distribution of all the words in the corpus
-        self.fc2 = nn.Linear(n_embedding, vocab_size)
+        self.fc2 = nn.Linear(n_embedding, vocab_size, bias=False)
 
         # the last layer is the softmax layer, which redistributes the distribution to probabilities
         # to be able to calculaute the loss function
-        self.fc3 = nn.Softmax()
+        self.softmax = nn.Softmax(dim=-1)
 
         # => therefore, the first layer is the embedding layer that we can use to vectorize words
 
     def forward(self, x):
         x = self.fc1(x)
         x = self.fc2(x)
-        x = self.fc3(x)
+        x = self.softmax(x)
         return x
 
 # train the model
 
 
-def train(model, X, y, n_epochs=30, learning_rate=0.01):
+def cross_entropy(z, y):
+    return - torch.sum(torch.log(z) * y)
+
+
+def train(model, X, y, n_epochs=1000, learning_rate=0.01):
     optimizer = torch.optim.SGD(
         model.parameters(), lr=learning_rate, momentum=0.9)
     losses = []
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = cross_entropy
+    batch_size = int(len(X) / 10)
     for _ in range(n_epochs):
         n_loss = 0
-        # for i in range(len(X)):
+        # for inputs, label in zip(X, y):
         #     optimizer.zero_grad()
-        #     output = model.forward(torch.tensor(X[i], dtype=torch.float32))
-        #     loss = loss_fn(output, torch.tensor(y[i], dtype=torch.float32))
+        #     output = model.forward(torch.tensor(inputs, dtype=torch.float32))
+        #     loss = loss_fn(output, torch.tensor(label, dtype=torch.float32))
         #     loss.backward()
         #     optimizer.step()
         #     n_loss += loss.item()
@@ -160,8 +169,8 @@ def train(model, X, y, n_epochs=30, learning_rate=0.01):
         loss = loss_fn(output, torch.tensor(y, dtype=torch.float32))
         loss.backward()
         optimizer.step()
-        n_loss += loss.item()
-        # losses.append(n_loss / len(X))
+        n_loss = loss.item()
+        # losses.append(n_loss / batch_size)
         losses.append(n_loss)
 
     return losses
@@ -169,23 +178,35 @@ def train(model, X, y, n_epochs=30, learning_rate=0.01):
 
 model = NN()
 
+print(list(model.parameters()))
+
+
+print(X.shape)
+print(y.shape)
+
 loss = train(model, X, y)
 
-# plt.plot(range(len(loss)), loss, color="skyblue")
+plt.plot(range(len(loss)), loss, color="skyblue")
 
+plt.show()
 
 # testing
-# test = one_hot_encode(word_to_id["early"], vocab_size)
 
-# result = model.forward(torch.tensor(test, dtype=torch.float32))
-# print(result)
 
-# result_dict = {}
+def test(s="good"):
+    test = one_hot_encode(word_to_id[s], vocab_size)
+    result = model.forward(torch.tensor(test, dtype=torch.float32))
+    print(result)
 
-# for i, prob in enumerate(list(result)):
-# result_dict[float(prob)] = id_to_word[i]
+    result_dict = {}
 
-# print(dict(sorted(result_dict.items(), reverse=True)))
+    for i, prob in enumerate(list(result)):
+        result_dict[float(prob)] = id_to_word[i]
+
+    result = dict(sorted(result_dict.items(), reverse=True))
+
+    for key, value in result.items()[:10]:
+        print(f"{key} : {value}\n")
 
 
 # vectorizing the words
@@ -196,7 +217,7 @@ def vectorize(word):
     return model.fc1(one_hot)
 
 
-print(vectorize("early"))
+print(vectorize("good"))
 
 
 print(f"Execution time: {time.time() - start_time}(s)")
