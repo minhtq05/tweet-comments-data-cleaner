@@ -1,6 +1,4 @@
-from torchtext.data.utils import get_tokenizer
 from nltk.corpus import stopwords
-from nltk.corpus import wordnet as wn
 import ssl
 import re
 import pandas as pd
@@ -10,6 +8,7 @@ import time
 
 start_time = time.time()
 
+vocab = set()
 
 try:
     _create_unverified_https_context = ssl._create_unverified_context
@@ -54,34 +53,20 @@ def tokenize(text):
     return text
 
 
-# def remove_internet_contents(text):
-#     text = text.lower()
-#     text = re.sub(r"http\S+", "", text)  # remove urls
-#     # text = re.sub("www.[A-Za-z0-9-?[-`{-~]", "", text)  # also remove urls
-#     # text = re.sub("@[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove usernames
-#     # text = re.sub("#[A-Za-z0-9!-?[-`{-~]+", "", text)  # remove hashtags
-#     text = re.sub()
-#     text = re.sub("[~`!@#$%^&*()-_+=[\]{};:\"\\|,.<>/?]",
-#                   "", text)  # remove special characters
-#     return text
-
-
 def clean_data(data):
-    """ clean the dataset"""
+    """clean the dataset"""
     length = len(data)
     jump = length / 10
 
-    # tk = BertTokenizer.from_pretrained('bert-base-uncased')
     english_stops = set(stopwords.words('english'))
 
     for i, (id, label, text) in enumerate(data):
         id, label = int(id), int(label)
 
-        # text = remove_internet_contents(text)
         tokens = tokenize(text)
 
         tokens = [word for word in tokens if word not in english_stops]
-
+        vocab.add(tokens)
         data[i] = id, label, ' '.join(tokens)
 
         if (id % jump == 0):
